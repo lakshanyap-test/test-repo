@@ -28,11 +28,11 @@ jobs:
         run: echo Hello, world!
 
       - name: Build Docker image - DEV
-        if: ${{ github.ref }} == 'dev'
+        if: github.ref == 'dev'
         run: |
           echo Building Docker Image for DEV environment
             
       - name: Build Docker image - STG
-        if: ${{ github.ref }} == 'main'
+        if: github.ref == 'main'
         run: |
           echo Building Docker Image for STG environment
