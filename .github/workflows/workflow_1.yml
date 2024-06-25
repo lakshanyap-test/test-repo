@@ -22,7 +22,7 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Run a one-line script
-        run: echo Hello, world!
+        run: echo $ {{ github.ref }}
         
   build-and-deploy-to-dev:
     if: github.ref == 'refs/heads/dev'
