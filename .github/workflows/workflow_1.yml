@@ -47,6 +47,8 @@ jobs:
           secret: ${{ github.TOKEN }}
           approvers: LakshanyaP,rsures98
           minimum-approvals: 1
+          issue-title: "Deploy docker image to STG?"
+          issue-body: "Please approve or deny the deployment docker image to STG"
           
       - name: Build Docker image - STG
         run: |
