@@ -42,7 +42,7 @@ jobs:
   build-and-deploy-to-stg:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    needs: build-and-deploy-to-dev
+    needs: build
     environment: STG
     steps:       
       - name: Build Docker image - STG
