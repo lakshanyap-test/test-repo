@@ -42,3 +42,7 @@ jobs:
       - name: Build Docker image - STG
         run: |
           echo Building Docker Image for STG environment
+
+      - name: Push Docker image to ACR - STG
+        run: |
+          echo  Push Docker image to ACR STG environment
