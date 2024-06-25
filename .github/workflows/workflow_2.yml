@@ -30,42 +30,21 @@ jobs:
         run: echo ${GITHUB_REF}
         
   build-and-deploy-to-dev:
-    if: github.ref == 'refs/heads/dev'
-    permissions:
-      issues: write
     runs-on: ubuntu-latest
     needs: build
+    if: github.ref == 'refs/heads/dev'
+    environment: DEV
     steps:
-      - name: Approve DEV deployment
-        uses: trstringer/manual-approval@v1
-        with:
-          secret: ${{ github.TOKEN }}
-          approvers: lakshanyap-test
-          minimum-approvals: 1
-          issue-title: "Deploy docker image to DEV?"
-          issue-body: "Please approve or deny the deployment docker image to DEV"
-
       - name: Build Docker image - DEV
-        if: github.ref == 'refs/heads/dev'
         run: |
           echo Building Docker Image for DEV environment      
 
   build-and-deploy-to-stg:
-    if: github.ref == 'refs/heads/main' && github.event.pull_request.merged == true
-    permissions:
-      issues: write
     runs-on: ubuntu-latest
     needs: build-and-deploy-to-dev
-    steps:
-      - name: Approve STG deployment
-        uses: trstringer/manual-approval@v1
-        with:
-          secret: ${{ github.TOKEN }}
-          approvers: lakshanyap-test
-          minimum-approvals: 1
-          issue-title: "Deploy docker image to STG?"
-          issue-body: "Please approve or deny the deployment docker image to STG"
-          
+    if: github.ref == 'refs/heads/main' && github.event.pull_request.merged == true
+    environment: STG
+    steps:       
       - name: Build Docker image - STG
         run: |
           echo Building Docker Image for STG environment
