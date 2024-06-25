@@ -25,6 +25,7 @@ jobs:
         run: echo Hello, world!
         
   build-and-deploy-to-dev:
+    if: github.ref == 'refs/heads/dev'
     permissions:
       issues: write
     runs-on: ubuntu-latest
@@ -39,11 +40,11 @@ jobs:
 
           
       - name: Build Docker image - DEV
-        if: github.ref == 'refs/heads/dev'
         run: |
           echo Building Docker Image for DEV environment
 
   build-and-deploy-to-stg:
+    if: github.ref == 'refs/heads/main'
     permissions:
       issues: write
     runs-on: ubuntu-latest
@@ -57,6 +58,5 @@ jobs:
           minimum-approvals: 1
           
       - name: Build Docker image - STG
-        if: github.ref == 'refs/heads/main'
         run: |
           echo Building Docker Image for STG environment
