@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Approve DEV deployment
-      - uses: trstringer/manual-approval@v1
+        uses: trstringer/manual-approval@v1
         with:
           approvers: LakshanyaP
           minimum-approvals: 1
