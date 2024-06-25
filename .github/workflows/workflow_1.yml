@@ -45,7 +45,7 @@ jobs:
         uses: trstringer/manual-approval@v1
         with:
           secret: ${{ github.TOKEN }}
-          approvers: LakshanyaP
+          approvers: LakshanyaP,rsures98
           minimum-approvals: 1
           
       - name: Build Docker image - STG
