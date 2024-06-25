@@ -25,6 +25,8 @@ jobs:
         run: echo Hello, world!
         
   build-and-deploy-to-dev:
+    permissions:
+      issues: write
     runs-on: ubuntu-latest
     needs: build
     steps:
