@@ -28,6 +28,22 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run a one-line script
         run: echo ${GITHUB_REF}
+        
+  build-and-deploy-to-dev:
+    if: github.ref == 'refs/heads/dev'
+    permissions:
+      issues: write
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Approve DEV deployment
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.TOKEN }}
+          approvers: lakshanyap-test
+          minimum-approvals: 1
+          issue-title: "Deploy docker image to DEV?"
+          issue-body: "Please approve or deny the deployment docker image to DEV"
 
       - name: Build Docker image - DEV
         if: github.ref == 'refs/heads/dev'
@@ -45,7 +61,7 @@ jobs:
         uses: trstringer/manual-approval@v1
         with:
           secret: ${{ github.TOKEN }}
-          approvers: LakshanyaP,rsures98
+          approvers: lakshanyap-test
           minimum-approvals: 1
           issue-title: "Deploy docker image to STG?"
           issue-body: "Please approve or deny the deployment docker image to STG"
