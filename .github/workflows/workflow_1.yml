@@ -1,4 +1,4 @@
-name: Build & Deploy Docker Image
+name: Build & Deploy Docker Image - 1
 
 # Controls when the workflow will run
 on:
