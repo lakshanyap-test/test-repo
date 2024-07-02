@@ -35,7 +35,7 @@ jobs:
           echo "$GITHUB_CONTEXT"
 
       - name: Fail if user is not authorised
-        if: "!contains(env.AUTHORIZED_USERS, github.actor)"
+        if: contains(env.AUTHORIZED_USERS, github.actor)
         run: |
           echo "User ${{ github.actor }} is not authorized to trigger the workflow. Authorized users - ${{ env.AUTHORIZED_USERS }}"
           exit 1
