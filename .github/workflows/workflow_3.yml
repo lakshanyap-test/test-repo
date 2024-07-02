@@ -41,7 +41,7 @@ jobs:
 
   build-and-deploy-stg:
     runs-on: ubuntu-latest
-    if: github.ref_name == 'main' and github.event_name == 'workflow_dispatch'
+    if: github.ref_name == 'main' && github.event_name == 'workflow_dispatch'
     needs: checkout-repo
     steps:       
       - name: Build Docker image - STG
