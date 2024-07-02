@@ -39,6 +39,11 @@ jobs:
         run: |
           echo "User ${{ github.actor }} is not authorized to trigger the workflow. Authorized users - ${{ env.AUTHORIZED_USERS }}"
           exit 1
+
+      - name: Pass if user is authorised
+        if: ${{ contains(env.AUTHORIZED_USERS, github.actor) }}
+        run: |
+          echo "User ${{ github.actor }} is authorized to trigger the workflow. Authorized users - ${{ env.AUTHORIZED_USERS }}"
         # run: |
         #   IFS=","
         #   authorizedUsers=(${AUTHORIZED_USERS})
