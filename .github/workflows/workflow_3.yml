@@ -3,6 +3,9 @@ name: Build & Deploy Docker Image - 3
 # Controls when the workflow will run
 on:
   workflow_dispatch:
+    branches:
+      - main
+    
   push:
     branches:
       - dev
