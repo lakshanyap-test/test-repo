@@ -23,8 +23,13 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run a one-line script
         run: |
-          echo ${GITHUB_REF} \
-          echo "${{ toJson(github.event) }}"
+          echo ${GITHUB_REF}
+          
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: |
+          echo "$GITHUB_CONTEXT"
         
   build-and-deploy-dev:
     runs-on: ubuntu-latest
