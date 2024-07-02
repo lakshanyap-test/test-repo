@@ -24,7 +24,6 @@ jobs:
       - name: Run a one-line script
         run: |
           echo ${GITHUB_REF} \
-          echo ${{github_event}} \
           echo ${{ toJson(github) }}
         
   build-and-deploy-dev:
