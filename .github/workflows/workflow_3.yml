@@ -16,7 +16,7 @@ jobs:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     env:
-      AUTHORIZED_USERS: LakshanyaP,rsures98
+      AUTHORIZED_USERS: Lakshanya,rsures98
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -37,7 +37,7 @@ jobs:
       - name: Fail if user is not authorised
         if: "!contains(env.AUTHORIZED_USERS, github.actor)"
         run: |
-          echo "Only authorized users can trigger the workflow."
+          echo "User ${{ github.actor }} is not authorized to trigger the workflow. Authorized users - ${{ env.AUTHORIZED_USERS }}"
           exit 1
         
       # - name: Build Docker image - DEV
