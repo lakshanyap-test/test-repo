@@ -22,7 +22,9 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Run a one-line script
-        run: echo ${GITHUB_REF}
+        run: |
+          echo ${GITHUB_REF} \
+          echo github_event
         
   build-and-deploy-dev:
     runs-on: ubuntu-latest
