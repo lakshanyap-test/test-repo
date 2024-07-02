@@ -51,7 +51,7 @@ jobs:
   build-and-deploy-prod:
     runs-on: ubuntu-latest
     if: github.ref_name == 'main'
-    needs: checkout-repo
+    needs: build-and-deploy-stg
     steps:       
       - name: Build Docker image - PROD
         run: |
