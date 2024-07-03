@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AUTHORIZED_USERS: '["LakshanyaP","rsures98"]'
-      IMAGE_TAG: github.ref_name
+      IMAGE_TAG: ${github.ref_name}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
