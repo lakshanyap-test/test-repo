@@ -37,9 +37,9 @@ jobs:
           echo "$GITHUB_CONTEXT"
 
       - name: Check if workflow is triggered on MAIN or DEV branch
-        if: github.ref_name != 'main' && github.ref_name != 'dev'
+        if: github.ref_name == 'main' || github.ref_name == 'dev'
         run: |
-          echo "This workflow should only be triggered on the MAIN or DEV branch."
+          echo "This workflow should only be triggered on a feature branch."
           exit 1
 
       - name: Fail if user is not authorised
