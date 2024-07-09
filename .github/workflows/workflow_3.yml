@@ -55,7 +55,7 @@ jobs:
         run: |
           echo "User ${{ github.actor }} is authorized to trigger the workflow. Authorized users - ${{ env.AUTHORIZED_USERS }}"
 
-      - name: Build Docker image - "${{ env.IMAGE_TAG.uppercase }}".upper()
+      - name: Build Docker image - "${{ env.IMAGE_TAG }}".upper()
         if: github.ref_name == 'dev'
         run: |
           echo Building Docker Image for DEV environment  
