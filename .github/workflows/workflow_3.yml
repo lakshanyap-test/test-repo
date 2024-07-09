@@ -28,11 +28,9 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Run a one-line script
-        id: vars
         run: |
           echo ${GITHUB_REF} \
           echo $IMAGE_TAG \
-          echo "::set-output name=string::${{ env.IMAGE_TAG }}"
           
       - name: Dump GitHub context
         env:
@@ -57,7 +55,7 @@ jobs:
         run: |
           echo "User ${{ github.actor }} is authorized to trigger the workflow. Authorized users - ${{ env.AUTHORIZED_USERS }}"
 
-      - name: Build Docker image - "${{ steps.vars.outputs.string.toUpperCase() }}"
+      - name: Build Docker image - "${{ env.IMAGE_TAG }}".upper()
         if: github.ref_name == 'dev'
         run: |
           echo Building Docker Image for DEV environment  
