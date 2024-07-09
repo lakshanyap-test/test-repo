@@ -38,11 +38,11 @@ jobs:
         run: |
           echo "$GITHUB_CONTEXT"
 
-      - name: Check if workflow is triggered on MAIN or DEV branch
-        if: github.ref_name == 'main' || github.ref_name == 'dev'
-        run: |
-          echo "This workflow should only be triggered on a feature branch."
-          exit 1
+      # - name: Check if workflow is triggered on MAIN or DEV branch
+      #   if: github.ref_name == 'main' || github.ref_name == 'dev'
+      #   run: |
+      #     echo "This workflow should only be triggered on a feature branch."
+      #     exit 1
 
       - name: Fail if user is not authorised
         if: ${{ !contains(env.AUTHORIZED_USERS, github.actor) }}
@@ -55,7 +55,7 @@ jobs:
         run: |
           echo "User ${{ github.actor }} is authorized to trigger the workflow. Authorized users - ${{ env.AUTHORIZED_USERS }}"
 
-      - name: Build Docker image - {{ env.IMAGE_TAG.uppercase }}
+      - name: Build Docker image - ${{ env.IMAGE_TAG.uppercase }}
         if: github.ref_name == 'dev'
         run: |
           echo Building Docker Image for DEV environment  
