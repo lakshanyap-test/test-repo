@@ -29,6 +29,7 @@ jobs:
       IMAGE_TAG_PROD: 'prod'
       RULES_VERSION_ENV: ${{ inputs.rules_version_env }}
 
+    steps:
       - name: Fail if user is not authorised
         if: ${{ !contains(env.AUTHORIZED_USERS, github.actor) }}
         run: |
