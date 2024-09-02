@@ -1,0 +1,99 @@
+name: Build & Deploy Docker Image - 4
+
+# Controls when the workflow will run
+on:
+  workflow_dispatch:
+    inputs:
+      rules_version_env:
+        description: 'Rules Version. This decides the environment to deploy the rules.'
+        required: true
+        default: 'dev'
+        type: choice
+        options:  # The options should be the same as the different non-prod subdirectories in the rules directory
+          - 'dev'
+          - 'stg'
+          - 'int'
+          - 'uat'
+          - 'main'
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build-and-deploy-manual:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    env:
+      AUTHORIZED_USERS: '["LakshanyaP","rsures98"]'
+      IMAGE_NAME: commercial-sf-deploy-rules
+      IMAGE_TAG_NONPROD: 'nonprod'
+      IMAGE_TAG_PROD: 'prod'
+      RULES_VERSION_ENV: ${{ inputs.rules_version_env }}
+
+      - name: Fail if user is not authorised
+        if: ${{ !contains(env.AUTHORIZED_USERS, github.actor) }}
+        run: |
+          echo "User ${{ github.actor }} is not authorized to trigger the workflow. Authorized users - ${{ env.AUTHORIZED_USERS }}"
+          exit 1
+
+      - name: Azure Login - Non Prod
+        if: ${{ env.RULES_VERSION_ENV == 'dev' || env.RULES_VERSION_ENV == 'stg' || env.RULES_VERSION_ENV == 'int' || env.RULES_VERSION_ENV == 'uat' }}
+        run: |
+          echo "secrets.AZURE_CREDENTIALS_NONPROD"
+
+      - name: Azure Login - Prod
+        if: ${{ env.RULES_VERSION_ENV == 'main' }}
+        run: |
+          echo "secrets.AZURE_CREDENTIALS_PROD"
+
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Docker login to ACR - Non Prod
+        if: ${{ env.RULES_VERSION_ENV == 'dev' || env.RULES_VERSION_ENV == 'stg' || env.RULES_VERSION_ENV == 'int' || env.RULES_VERSION_ENV == 'uat' }}
+        run: |
+          echo "vars.DOCKER_AZURE_ACR_NONPROD" \
+          echo "secrets.DOCKER_AZURE_ACR_NONPROD_USERNAME" \
+          echo "secrets.DOCKER_AZURE_ACR_NONPROD_PASSWORD"
+
+      - name: Docker login to ACR - Prod
+        if: ${{ env.RULES_VERSION_ENV == 'main' }}
+        run: |
+          echo "vars.DOCKER_AZURE_ACR_PROD" \
+          echo "secrets.DOCKER_AZURE_ACR_PROD_USERNAME" \
+          echo "secrets.DOCKER_AZURE_ACR_PROD_PASSWORD"
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: |
+          echo ${GITHUB_REF} \
+          echo $IMAGE_TAG \
+
+      - name: Print info
+        run: echo -e "URL = $GITHUB_SERVER_URL\nCommit = $GITHUB_SHA\nBranch = $GITHUB_HEAD_REF"
+
+          
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: |
+          echo "$GITHUB_CONTEXT"
+
+      - name: Pass if user is authorised
+        if: ${{ contains(env.AUTHORIZED_USERS, github.actor) }}
+        run: |
+          echo "User ${{ github.actor }} is authorized to trigger the workflow. Authorized users - ${{ env.AUTHORIZED_USERS }}"
+      
+      - name: Build Docker image - DEV
+        if: github.ref_name == 'dev'
+        run: |
+          echo Building Docker Image for DEV environment      
+         
+      - name: Build Docker image - STG
+        if: github.ref_name == 'main'
+        run: |
+          echo Building Docker Image for STG environment
+
+      - name: Build Docker image - PROD
+        if: github.ref_name == 'main'
+        run: |
+          echo Building Docker Image for PROD environment
