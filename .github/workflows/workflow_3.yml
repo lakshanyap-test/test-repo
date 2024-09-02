@@ -1,85 +1,85 @@
-name: Build & Deploy Docker Image - 3
+# name: Build & Deploy Docker Image - 3
 
-# Controls when the workflow will run
-on:
-  workflow_dispatch:
-    inputs:
-      image_tag:
-        description: 'Docker image tag. Example: dev/release'
-        required: true
-        default: 'dev'
-        type: string
+# # Controls when the workflow will run
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       image_tag:
+#         description: 'Docker image tag. Example: dev/release'
+#         required: true
+#         default: 'dev'
+#         type: string
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
-jobs:
-  # This workflow contains a single job called "build"
-  checkout-repo:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-    env:
-      AUTHORIZED_USERS: '["LakshanyaP","rsures98"]'
-      # IMAGE_TAG: ${{ github.ref_name }}
-      IMAGE_TAG: ${{ inputs.image_tag }}
+# # A workflow run is made up of one or more jobs that can run sequentially or in parallel
+# jobs:
+#   # This workflow contains a single job called "build"
+#   checkout-repo:
+#     # The type of runner that the job will run on
+#     runs-on: ubuntu-latest
+#     env:
+#       AUTHORIZED_USERS: '["LakshanyaP","rsures98"]'
+#       # IMAGE_TAG: ${{ github.ref_name }}
+#       IMAGE_TAG: ${{ inputs.image_tag }}
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+#     # Steps represent a sequence of tasks that will be executed as part of the job
+#     steps:
+#       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+#       - uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: |
-          echo ${GITHUB_REF} \
-          echo $IMAGE_TAG \
+#       # Runs a single command using the runners shell
+#       - name: Run a one-line script
+#         run: |
+#           echo ${GITHUB_REF} \
+#           echo $IMAGE_TAG \
           
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: |
-          echo "$GITHUB_CONTEXT"
+#       - name: Dump GitHub context
+#         env:
+#           GITHUB_CONTEXT: ${{ toJson(github) }}
+#         run: |
+#           echo "$GITHUB_CONTEXT"
 
-      # - name: Check if workflow is triggered on MAIN or DEV branch
-      #   if: github.ref_name == 'main' || github.ref_name == 'dev'
-      #   run: |
-      #     echo "This workflow should only be triggered on a feature branch."
-      #     exit 1
+#       # - name: Check if workflow is triggered on MAIN or DEV branch
+#       #   if: github.ref_name == 'main' || github.ref_name == 'dev'
+#       #   run: |
+#       #     echo "This workflow should only be triggered on a feature branch."
+#       #     exit 1
 
-      - name: Fail if user is not authorised
-        if: ${{ !contains(env.AUTHORIZED_USERS, github.actor) }}
-        run: |
-          echo "User ${{ github.actor }} is not authorized to trigger the workflow. Authorized users - ${{ env.AUTHORIZED_USERS }}"
-          exit 1
+#       - name: Fail if user is not authorised
+#         if: ${{ !contains(env.AUTHORIZED_USERS, github.actor) }}
+#         run: |
+#           echo "User ${{ github.actor }} is not authorized to trigger the workflow. Authorized users - ${{ env.AUTHORIZED_USERS }}"
+#           exit 1
 
-      - name: Pass if user is authorised
-        if: ${{ contains(env.AUTHORIZED_USERS, github.actor) }}
-        run: |
-          echo "User ${{ github.actor }} is authorized to trigger the workflow. Authorized users - ${{ env.AUTHORIZED_USERS }}"
+#       - name: Pass if user is authorised
+#         if: ${{ contains(env.AUTHORIZED_USERS, github.actor) }}
+#         run: |
+#           echo "User ${{ github.actor }} is authorized to trigger the workflow. Authorized users - ${{ env.AUTHORIZED_USERS }}"
 
-      - name: Build Docker image - "${{ env.IMAGE_TAG }}".upper()
-        if: github.ref_name == 'dev'
-        run: |
-          echo Building Docker Image for DEV environment  
-        # run: |
-        #   IFS=","
-        #   authorizedUsers=(${AUTHORIZED_USERS})
-        #   if [[ "${authorizedUsers[*]}" =~ "${{ github.actor }}" ]]; then
-        #     echo "Authorized user: ${{ github.actor }}"
-        #   else
-        #     echo "Unauthorized user: ${{ github.actor }}"
-        #     exit 1
-        #   fi
+#       - name: Build Docker image - "${{ env.IMAGE_TAG }}".upper()
+#         if: github.ref_name == 'dev'
+#         run: |
+#           echo Building Docker Image for DEV environment  
+#         # run: |
+#         #   IFS=","
+#         #   authorizedUsers=(${AUTHORIZED_USERS})
+#         #   if [[ "${authorizedUsers[*]}" =~ "${{ github.actor }}" ]]; then
+#         #     echo "Authorized user: ${{ github.actor }}"
+#         #   else
+#         #     echo "Unauthorized user: ${{ github.actor }}"
+#         #     exit 1
+#         #   fi
         
-      # - name: Build Docker image - DEV
-      #   if: github.ref_name == 'dev' && github.event_name == 'push'
-      #   run: |
-      #     echo Building Docker Image for DEV environment      
+#       # - name: Build Docker image - DEV
+#       #   if: github.ref_name == 'dev' && github.event_name == 'push'
+#       #   run: |
+#       #     echo Building Docker Image for DEV environment      
          
-      # - name: Build Docker image - STG
-      #   if: github.ref_name == 'main' && github.event_name == 'workflow_dispatch'
-      #   run: |
-      #     echo Building Docker Image for STG environment
+#       # - name: Build Docker image - STG
+#       #   if: github.ref_name == 'main' && github.event_name == 'workflow_dispatch'
+#       #   run: |
+#       #     echo Building Docker Image for STG environment
 
-      # - name: Build Docker image - PROD
-      #   if: github.ref_name == 'main' && github.event_name == 'workflow_dispatch'
-      #   run: |
-      #     echo Building Docker Image for PROD environment
+#       # - name: Build Docker image - PROD
+#       #   if: github.ref_name == 'main' && github.event_name == 'workflow_dispatch'
+#       #   run: |
+#       #     echo Building Docker Image for PROD environment
