@@ -1,0 +1,43 @@
+name: Build & Deploy Docker Image to DEV and MAIN
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: commercial-sf-sql-runner
+      IMAGE_TAG_DEV: dev
+      IMAGE_TAG_RELEASE: release
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Docker login to ACR - Non Prod
+        run: |
+          echo "vars.DOCKER_AZURE_ACR_NONPROD" \
+          echo "secrets.DOCKER_AZURE_ACR_NONPROD_USERNAME" \
+          echo "secrets.DOCKER_AZURE_ACR_NONPROD_PASSWORD"
+
+      - name: Print info
+        run: echo -e "URL = $GITHUB_SERVER_URL\nCommit = $GITHUB_SHA\nBranch = $GITHUB_HEAD_REF"
+
+      - name: Build Docker image - DEV
+        if: github.ref_name == 'dev'
+        run: echo "Building Docker Image for DEV environment"
+
+      - name: Build Docker image - RELEASE
+        if: github.ref_name == 'main'
+        run: echo "Building Docker Image for STG environment"
+
+      - name: Push Docker image to ACR - DEV
+        if: github.ref_name == 'dev'
+        run: echo "Push Docker Image to ACR - DEV"
+
+      - name: Push Docker image to ACR - RELEASE
+        if: github.ref_name == 'main'
+        run: echo "Push Docker Image to ACR - RELEASE"
