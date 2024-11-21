@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: [ uhg-runner ]
+    runs-on: ubuntu-latest
     env:
       IMAGE_NAME: commercial-sf-sql-runner
       IMAGE_TAG_DEV: dev
