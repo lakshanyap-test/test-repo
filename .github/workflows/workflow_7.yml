@@ -47,6 +47,7 @@ jobs:
     needs: pre-build-and-deploy
     outputs:
       selected: ${{ steps.get-selected-step.outputs.selected }}
+      format: 'json'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
