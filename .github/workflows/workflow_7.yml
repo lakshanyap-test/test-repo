@@ -62,6 +62,7 @@ jobs:
     strategy:
       matrix:
         environment: ${{ fromJson(needs.get-envs-to-deploy.outputs.selected) }}
+      contune-on-error: true
     env:
       IMAGE_NAME: commercial-sf-sql-runner
       IMAGE_TAG_NONPROD: 'nonprod'
