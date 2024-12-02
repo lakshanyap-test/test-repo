@@ -1,0 +1,93 @@
+name: Select Environment to Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      rule_ids_csv:
+        description: 'Rule IDs that need to be deployed. Example: C0031,C0036. To Deploy all rules in corresponding rules_version.txt file use ALL'
+        required: true
+        type: string
+      change_reason:
+        description: 'Reason for Deploying. Example: Deploying as part of US#####'
+        required: true
+        type: string
+      dev:
+        description: 'Deploy to DEV?'
+        type: boolean
+      stg:
+        description: 'Deploy to STG?'
+        type: boolean
+      int:
+        description: 'Deploy to INT?'
+        type: boolean
+      uat:
+        description: 'Deploy to UAT?'
+        type: boolean
+      main:
+        description: 'Deploy to PROD?'
+        type: boolean
+
+jobs:
+  get-env-to-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - id: get-selected-step
+        uses: joao-zanutto/get-selected@v1.1.1
+
+      - run: echo ${{ steps.get-selected-step.outputs.selected }}
+
+  pre-build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      AUTHORIZED_USERS: '["LakshanyaP","rsures98"]'
+    steps:
+      - name: Check if user is authorized
+        if: ${{ !contains(env.AUTHORIZED_USERS, github.actor) }}
+        run: |
+          echo "User ${{ github.actor }} is not authorized to trigger this workflow. Authorized users - ${{ env.AUTHORIZED_USERS }}"
+          exit 1
+
+      - name: Print info
+        run: echo -e "URL = $GITHUB_SERVER_URL\nCommit = $GITHUB_SHA\nBranch = $GITHUB_HEAD_REF"
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    needs: get-selected
+    env:
+      IMAGE_NAME: commercial-sf-sql-runner
+      IMAGE_TAG_DEV: dev
+      IMAGE_TAG_RELEASE: release
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Print Selected Environments to Deploy
+        run: echo ${{ needs.get-selected.outputs.selected }}
+
+      - name: Docker login to ACR - Non Prod
+        run: |
+          echo "vars.DOCKER_AZURE_ACR_NONPROD" \
+          echo "secrets.DOCKER_AZURE_ACR_NONPROD_USERNAME" \
+          echo "secrets.DOCKER_AZURE_ACR_NONPROD_PASSWORD"
+
+      - name: Print info
+        run: echo -e "URL = $GITHUB_SERVER_URL\nCommit = $GITHUB_SHA\nBranch = $GITHUB_HEAD_REF"
+
+      - name: Build Docker image - DEV
+        if: github.ref_name == 'dev'
+        run: echo "Building Docker Image for DEV environment"
+
+      - name: Build Docker image - RELEASE
+        if: github.ref_name == 'main'
+        run: echo "Building Docker Image for STG environment"
+
+      - name: Push Docker image to ACR - DEV
+        if: github.ref_name == 'dev'
+        run: echo "Push Docker Image to ACR - DEV"
+
+      - name: Push Docker image to ACR - RELEASE
+        if: github.ref_name == 'main'
+        run: echo "Push Docker Image to ACR - RELEASE"
