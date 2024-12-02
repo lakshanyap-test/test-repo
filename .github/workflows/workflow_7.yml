@@ -70,8 +70,9 @@ jobs:
       - name: Print Selected Environment to Deploy
         run: echo ${{ matrix.environment }}
 
-      - name: Ensure Rules deployed to STG/INT/UAT only from MAIN branch
-        if: ${{ matrix.environment == 'stg' || matrix.environment == 'int' || matrix.environment == 'uat' }} && ${{ github.ref_name != 'main' }}
+      - name: Ensure Rules deployed to STG/INT/UAT/PRD only from MAIN branch
+#        if: ${{ matrix.environment == 'dev' }} || (${{ matrix.environment == 'stg' || matrix.environment == 'int' || matrix.environment == 'uat' }} && ${{ github.ref_name != 'main' }})
+        if: ${{ (matrix.environment == 'stg' || matrix.environment == 'int' || matrix.environment == 'uat' || matrix.environment == 'main') && github.ref_name != 'main' }}
         run: |
           echo "This workflow can only be triggered from the MAIN branch for STG, INT and UAT environments."
           exit 1
