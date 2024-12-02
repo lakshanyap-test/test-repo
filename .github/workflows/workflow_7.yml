@@ -47,13 +47,14 @@ jobs:
     needs: pre-build-and-deploy
     outputs:
       selected: ${{ steps.get-selected-step.outputs.selected }}
-      format: 'json'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
       - id: get-selected-step
         uses: joao-zanutto/get-selected@v1.1.1
+        with:
+          format: 'json'
 
   build-and-deploy:
     runs-on: ubuntu-latest
