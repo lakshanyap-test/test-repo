@@ -53,15 +53,13 @@ jobs:
 
       - id: get-selected-step
         uses: joao-zanutto/get-selected@v1.1.1
-        with:
-          format: 'json'
 
   build-and-deploy:
     runs-on: ubuntu-latest
     needs: get-envs-to-deploy
     strategy:
       matrix:
-        environment: ${{ fromJson(needs.get-envs-to-deploy.outputs.selected) }}
+        environment: ${{ needs.get-envs-to-deploy.outputs.selected }}
     env:
       IMAGE_NAME: commercial-sf-sql-runner
       IMAGE_TAG_DEV: dev
