@@ -1,0 +1,208 @@
+name: Select Environment to Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      rule_ids_csv:
+        description: 'Rule IDs that need to be deployed. Example: C0031,C0036. To Deploy all rules in corresponding rules_version.txt file use ALL'
+        required: true
+        type: string
+      change_reason:
+        description: 'Reason for Deploying. Example: Deploying as part of US#####'
+        required: true
+        type: string
+      dev:
+        description: 'Deploy to DEV?'
+        type: boolean
+      stg:
+        description: 'Deploy to STG?'
+        type: boolean
+      int:
+        description: 'Deploy to INT?'
+        type: boolean
+      uat:
+        description: 'Deploy to UAT?'
+        type: boolean
+      main:
+        description: 'Deploy to PROD?'
+        type: boolean
+
+jobs:
+  pre-build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      AUTHORIZED_USERS: '["LakshanyaP","rsures98"]'
+    steps:
+      - name: Check if user is authorized
+        if: ${{ !contains(env.AUTHORIZED_USERS, github.actor) }}
+        run: |
+          echo "User ${{ github.actor }} is not authorized to trigger this workflow. Authorized users - ${{ env.AUTHORIZED_USERS }}"
+          exit 1
+
+      - name: Print info
+        run: echo -e "URL = $GITHUB_SERVER_URL\nCommit = $GITHUB_SHA\nBranch = $GITHUB_HEAD_REF"
+
+  get-envs-to-deploy:
+    runs-on: ubuntu-latest
+    needs: pre-build-and-deploy
+    outputs:
+      selected: ${{ steps.get-selected-step.outputs.selected }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - id: get-selected-step
+        uses: joao-zanutto/get-selected@v1.1.1
+        with:
+          format: 'json'
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    needs: get-envs-to-deploy
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.get-envs-to-deploy.outputs.selected) }}
+      fail-fast: false
+    env:
+      IMAGE_NAME: commercial-sf-sql-runner
+      IMAGE_TAG_NONPROD: 'nonprod'
+      IMAGE_TAG_PROD: 'prod'
+    steps:
+      - name: Print Selected Environment to Deploy
+        run: echo ${{ matrix.environment }}
+
+      - name: Ensure Rules deployed to STG/INT/UAT/PRD only from MAIN branch
+        if: ${{ (matrix.environment == 'stg' || matrix.environment == 'int' || matrix.environment == 'uat' || matrix.environment == 'main') && github.ref_name != 'main' }}
+        run: |
+          echo "This workflow can only be triggered from the MAIN branch for STG, INT and UAT environments."
+          exit 1
+
+      - name: Azure Login - Non Prod
+        if: ${{ matrix.environment != 'main' }}
+        run: |
+          echo "secrets.AZURE_CREDENTIALS_NONPROD"
+
+      - name: Azure Login - Prod
+        if: ${{ matrix.environment == 'main' }}
+        run: |
+          echo "secrets.AZURE_CREDENTIALS_PROD"
+
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Docker login to ACR - Non Prod
+        if: ${{ matrix.environment != 'main' }}
+        run: |
+          echo "vars.DOCKER_AZURE_ACR_NONPROD" \
+          echo "secrets.DOCKER_AZURE_ACR_NONPROD_USERNAME" \
+          echo "secrets.DOCKER_AZURE_ACR_NONPROD_PASSWORD"
+
+      - name: Docker login to ACR - Prod
+        if: ${{ matrix.environment == 'main' }}
+        run: |
+          echo "vars.DOCKER_AZURE_ACR_PROD" \
+          echo "secrets.DOCKER_AZURE_ACR_PROD_USERNAME" \
+          echo "secrets.DOCKER_AZURE_ACR_PROD_PASSWORD"
+
+      - name: Build Docker image - Non Prod
+        if: ${{ matrix.environment != 'main' }}
+        run: |
+          echo "docker build -f tools/rule_deployment/Dockerfile" \
+          echo "--label source.git.commit=$GITHUB_SHA" \
+          echo "--label source.git.url=$GITHUB_SERVER_URL" \
+          echo "--label source.git.branch=$GITHUB_HEAD_REF" \
+          echo "--tag ${{ vars.DOCKER_AZURE_ACR_NONPROD }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG_NONPROD }}" \
+          echo "."
+
+      - name: Build Docker image - Prod
+        if: ${{ matrix.environment == 'main' }}
+        run: |
+          echo" docker build -f tools/rule_deployment/Dockerfile" \
+          echo "--label source.git.commit=$GITHUB_SHA" \
+          echo "--label source.git.url=$GITHUB_SERVER_URL" \
+          echo "--label source.git.branch=$GITHUB_HEAD_REF" \
+          echo "--tag ${{ vars.DOCKER_AZURE_ACR_PROD }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG_PROD }}" \
+          echo "."
+
+      - name: Push Docker image - Non Prod
+        if: ${{ matrix.environment != 'main' }}
+        run: echo "docker push ${{ vars.DOCKER_AZURE_ACR_NONPROD }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG_NONPROD }}"
+
+      - name: Push Docker image - Prod
+        if: ${{ matrix.environment == 'main' }}
+        run: echo "docker push ${{ vars.DOCKER_AZURE_ACR_PROD }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG_PROD }}"
+
+      - name: Set up kubelogin for non-interactive login
+        uses: azure/use-kubelogin@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          kubelogin-version: 'latest'
+
+      - name: Using Azure CLI Login Mode - Non Prod
+        if: ${{ matrix.environment != 'main' }}
+        run: |
+          echo "az aks get-credentials --resource-group ${{ vars.AKS_RESOURCE_GROUP_NONPROD }} --name ${{ vars.AKS_CLUSTER_NONPROD }} &&" \
+          echo "kubelogin convert-kubeconfig -l azurecli"
+
+      - name: Using Azure CLI Login Mode - Prod
+        if: ${{ matrix.environment == 'main' }}
+        run: |
+          echo "az aks get-credentials --resource-group ${{ vars.AKS_RESOURCE_GROUP_PROD }} --name ${{ vars.AKS_CLUSTER_PROD }} &&" \
+          echo "kubelogin convert-kubeconfig -l azurecli"
+          
+      - name: Set AKS context - DEV
+        if: ${{ matrix.environment == 'dev' }}
+        id: set-context-dev
+        run: |
+          echo "kubectl config set-context --current --namespace ${{ vars.AKS_NAMESPACE_DEV }} &&" \
+          echo "kubectl get pods"
+
+      - name: Set AKS context - STG
+        if: ${{ matrix.environment == 'stg' }}
+        id: set-context-stg
+        run: |
+          echo "kubectl config set-context --current --namespace ${{ vars.AKS_NAMESPACE_STG }} &&" \
+          echo "kubectl get pods"
+
+      - name: Set AKS context - INT
+        if: ${{ matrix.environment == 'int' }}
+        id: set-context-int
+        run: |
+          echo "kubectl config set-context --current --namespace ${{ vars.AKS_NAMESPACE_INT }} &&" \
+          echo "kubectl get pods"
+
+      - name: Set AKS context - UAT
+        if: ${{ matrix.environment == 'uat' }}
+        id: set-context-uat
+        run: |
+          echo "kubectl config set-context --current --namespace ${{ vars.AKS_NAMESPACE_UAT }} &&" \
+          echo "kubectl get pods"
+
+
+      - name: Set AKS context - PRD
+        if: ${{ matrix.environment == 'main' }}
+        id: set-context-prd
+        run: |
+          echo "kubectl config set-context --current --namespace ${{ vars.AKS_NAMESPACE_PRD }} &&" \
+          echo "kubectl get pods"
+
+      - name: Deploy to AKS - Non Prod
+        if: ${{ matrix.environment != 'main' }}
+        run: |
+          echo "sed -i.bak "s/rule_ids_csv_val/${{ inputs.rule_ids_csv }}/g"  tools/rule_deployment/k8s/deployment-non-prod.yaml &&" \
+          echo "   sed -i.bak "s/change_reason_val/${{ inputs.change_reason }}/g" tools/rule_deployment/k8s/deployment-non-prod.yaml &&" \
+          echo "   sed -i.bak "s/rules_version_env_value/${{ matrix.environment }}/g" tools/rule_deployment/k8s/deployment-non-prod.yaml" && \
+          echo "   kubectl apply -f tools/rule_deployment/k8s/deployment-non-prod.yaml"
+
+      - name: Deploy to AKS - Prod
+        if: ${{ matrix.environment == 'main' }}
+        run: |
+          echo "sed -i.bak "s/rule_ids_csv_val/${{ inputs.rule_ids_csv }}/g"  tools/rule_deployment/k8s/deployment-prod.yaml &&" \
+          echo "   sed -i.bak "s/change_reason_val/${{ inputs.change_reason }}/g" tools/rule_deployment/k8s/deployment-prod.yaml &&" \
+          echo "   kubectl apply -f tools/rule_deployment/k8s/deployment-prod.yaml"
+
+      - name: Check pod status
+        run: |
+          echo "kubectl logs $(sleep 15 && kubectl get pods | grep ^'deploy-rules' | cut -d" " -f1) &&" \
+          echo "kubectl wait --for=condition=complete job/deploy-rules --timeout=30s"
