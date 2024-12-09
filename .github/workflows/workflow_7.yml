@@ -214,25 +214,20 @@ on:
   workflow_dispatch:
     inputs:
       dev:
-        description: "Run in dev environment"
-        required: true
-        default: "false"
-      int:
-        description: "Run in int environment"
-        required: true
-        default: "false"
+        description: 'Deploy to DEV?'
+        type: boolean
       stg:
-        description: "Run in stg environment"
-        required: true
-        default: "false"
+        description: 'Deploy to STG?'
+        type: boolean
+      int:
+        description: 'Deploy to INT?'
+        type: boolean
       uat:
-        description: "Run in uat environment"
-        required: true
-        default: "false"
+        description: 'Deploy to UAT?'
+        type: boolean
       main:
-        description: "Run in main environment"
-        required: true
-        default: "false"
+        description: 'Deploy to PROD?'
+        type: boolean
  
 jobs:
   build:
@@ -242,19 +237,19 @@ jobs:
         id: set_envs
         run: |
           environments=()
-          if [[ "${{ github.event.inputs.dev }}" == "true" ]]; then 
+          if ${{ github.event.inputs.dev }}; then 
             environments+=("dev") 
           fi
-          if [[ "${{ github.event.inputs.int }}" == "true" ]]; then 
+          if ${{ github.event.inputs.int }}; then 
             environments+=("int") 
           fi
-          if [[ "${{ github.event.inputs.stg }}" == "true" ]]; then
+          if ${{ github.event.inputs.stg }}; then
             environments+=("stg")
           fi
-          if [[ "${{ github.event.inputs.uat }}" == "true" ]]; then
+          if ${{ github.event.inputs.uat }}; then
             environments+=("uat")
           fi
-          if [[ "${{ github.event.inputs.main }}" == "true" ]]; then
+          if ${{ github.event.inputs.main }}; then
             environments+=("main")
           fi
           echo "matrix=$(printf '%s\n' "${environments[@]}" | jq -R . | jq -s .)" >> $GITHUB_OUTPUT
