@@ -252,7 +252,7 @@ jobs:
           if ${{ github.event.inputs.main }}; then
             environments+=("main")
           fi
-          echo "matrix=$(printf '%s\n' "${environments[@]}" | jq -R . | jq -s .)" >> $GITHUB_OUTPUT
+          echo "matrix=${environments[@]}" >> $GITHUB_OUTPUT
         shell: bash
  
   matrix-job:
