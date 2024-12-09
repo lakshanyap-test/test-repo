@@ -260,7 +260,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        env: ${{ fromJson(needs.build.outputs.matrix) }}
+        env: ${{ needs.build.outputs.matrix }}
     steps:
       - name: Run for ${{ matrix.env }}
         run: echo "Running job for environment:" ${{ matrix.env }}
