@@ -230,44 +230,16 @@ on:
         type: boolean
  
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create Environment List
-        id: set_envs
-        run: |
-          environments=()
-          if ${{ github.event.inputs.dev }}; then 
-            environments+=("dev") 
-          fi
-          if ${{ github.event.inputs.int }}; then 
-            environments+=("int") 
-          fi
-          if ${{ github.event.inputs.stg }}; then
-            environments+=("stg")
-          fi
-          if ${{ github.event.inputs.uat }}; then
-            environments+=("uat")
-          fi
-          if ${{ github.event.inputs.main }}; then
-            environments+=("main")
-          fi
-          json="["
-          for env in "${environments[@]}"; do
-            json+="\"$env\","
-          done
-          json="${json%,}"
-          json+="]"
- 
-          echo "matrix=$json" >> $GITHUB_OUTPUT
-        shell: bash
- 
   matrix-job:
-    needs: build
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        env: ${{ needs.build.outputs.matrix }}
+        env: ${{ fromJson(format('["{0}", "{1}", "{2}", "{3}", "{4}"]', 
+                  github.event.inputs.dev == 'true' && 'dev' || '', 
+                  github.event.inputs.int == 'true' && 'int' || '', 
+                  github.event.inputs.stg == 'true' && 'stg' || '',
+                  github.event.inputs.uat == 'true' && 'uat' || '',
+                  github.event.inputs.main == 'true' && 'main' || '')) }}
     steps:
       - name: Run for ${{ matrix.env }}
         run: echo "Running job for environment:" ${{ matrix.env }}
