@@ -234,12 +234,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        env: ${{ fromJson(format('["{0}", "{1}", "{2}", "{3}", "{4}"]', 
-                  github.event.inputs.dev == 'true' && 'dev' || '', 
-                  github.event.inputs.int == 'true' && 'int' || '', 
-                  github.event.inputs.stg == 'true' && 'stg' || '',
-                  github.event.inputs.uat == 'true' && 'uat' || '',
-                  github.event.inputs.main == 'true' && 'main' || '')) }}
+        env: ${{ fromJson(format('[{0}{1}{2}{3}{4}]',
+                  github.event.inputs.dev && '"dev",' || '',
+                  github.event.inputs.int && '"int",' || '',
+                  github.event.inputs.stg && '"stg",' || '',
+                  github.event.inputs.uat && '"uat",' || '',
+                  github.event.inputs.main && '"main"' || '')) }}
     steps:
       - name: Run for ${{ matrix.env }}
         run: echo "Running job for environment:" ${{ matrix.env }}
