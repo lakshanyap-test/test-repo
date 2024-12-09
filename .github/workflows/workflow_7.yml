@@ -252,7 +252,14 @@ jobs:
           if ${{ github.event.inputs.main }}; then
             environments+=("main")
           fi
-          echo "matrix=${environments[@]}" >> $GITHUB_OUTPUT
+          json="["
+          for env in "${environments[@]}"; do
+            json+="\"$env\","
+          done
+          json="${json%,}"
+          json+="]"
+ 
+          echo "matrix=$json" >> $GITHUB_OUTPUT
         shell: bash
  
   matrix-job:
